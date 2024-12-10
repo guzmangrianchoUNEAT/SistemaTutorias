@@ -1,42 +1,29 @@
 # Sistema de Tutorías
 
-## Descripción General
-
-El **Sistema de Tutorías** es una aplicación desarrollada para gestionar reservas de salas, permitiendo a los usuarios registrarse, iniciar sesión, consultar y gestionar reservas de manera sencilla. Está diseñada para funcionar tanto en dispositivos móviles como en escritorio, con un backend eficiente que maneja la autenticación y las reservas.
-
----
+**Sistema de Tutorías** es una aplicación que permite gestionar reservas de salas. Los usuarios pueden registrarse, iniciar sesión, consultar y gestionar sus reservas de manera sencilla. La aplicación está diseñada para ser multiplataforma, funcionando tanto en dispositivos móviles como en escritorio.
 
 ## Tecnologías Usadas
 
-### **Frontend**
+### Frontend
 
-- **React Native con Expo**:
-  - **Uso**: Desarrollo de la interfaz de usuario para plataformas móviles.
-  - **Razón**: Permite un desarrollo multiplataforma con una base de código única, lo que acelera el desarrollo y facilita la integración de bibliotecas con Expo.
-- **AsyncStorage**:
-  - **Uso**: Persistencia de datos, como tokens de sesión y datos de usuario.
-  - **Razón**: Simple y eficaz para gestionar almacenamiento local en dispositivos móviles.
-- **React Navigation**:
-  - **Uso**: Navegación entre pantallas.
-  - **Razón**: Facilita la creación de estructuras de navegación modernas como pilas y pestañas.
+- **React Native con Expo**: Para el desarrollo de la interfaz móvil multiplataforma (iOS y Android).
+- **AsyncStorage**: Para la persistencia de datos locales, como tokens de sesión y datos de usuario.
+- **React Navigation**: Para gestionar la navegación entre pantallas.
 
-### **Backend**
+### Backend
 
-- **Node.js con Express**:
-  - **Uso**: API REST que gestiona la lógica del servidor y la comunicación con la base de datos.
-  - **Razón**: Ligero, rápido y fácil de usar con un ecosistema robusto.
-- **MongoDB**:
-  - **Uso**: Base de datos para gestionar usuarios y reservas.
-  - **Razón**: Ideal para manejar datos flexibles en aplicaciones dinámicas.
-- **JWT (JSON Web Tokens)**:
-  - **Uso**: Autenticación segura entre el cliente y el servidor.
-  - **Razón**: Es una solución moderna y escalable para manejar sesiones de usuario.
+- **Node.js con Express**: Para construir el servidor que gestiona la lógica de la API y la comunicación con la base de datos.
+- **JWT (JSON Web Tokens)**: Para la autenticación segura entre el cliente y el servidor.
+
+### Base de Datos
+
+- **MongoDB**: Para almacenar información de usuarios y reservas, aprovechando su flexibilidad en el manejo de datos.
 
 ---
 
 ## Estructura del Proyecto
 
-### **Frontend**
+### Frontend
 
 ```
 src/
@@ -48,14 +35,14 @@ src/
 └── App.tsx               # Punto de entrada de la aplicación Expo.
 ```
 
-### **Backend**
+### Backend
 
 ```
 backend/
-├── config/               # Configuración de la base de datos.
-├── middlewares/          # Middleware para autenticar rutas.
+├── config/               # Configuración de la base de datos y otros parámetros.
+├── middlewares/          # Middleware para proteger rutas (validación de JWT).
 ├── models/               # Modelos de datos (usuarios y reservas).
-├── routes/               # Rutas para autenticación y gestión de reservas.
+├── routes/               # Rutas para la autenticación y gestión de reservas.
 ├── .env                  # Variables de entorno (URI de MongoDB, clave JWT).
 └── server.js             # Configuración del servidor Express.
 ```
@@ -64,46 +51,39 @@ backend/
 
 ## Funcionamiento
 
-### **Frontend**
+### Frontend
 
-1. **Autenticación**:
-   - Los usuarios pueden registrarse proporcionando un nombre, correo y contraseña.
-   - Al iniciar sesión, se almacena un token de autenticación en AsyncStorage para mantener la sesión activa.
-2. **Gestión de Reservas**:
-   - Los usuarios pueden consultar reservas existentes, tanto personales como globales.
-   - Pueden crear nuevas reservas seleccionando fecha, hora y sala mediante un modal interactivo.
-3. **Navegación**:
-   - Se utiliza un Tab Navigator para organizar las pantallas principales: Inicio, Reservas y Perfil.
-4. **Pantalla de Perfil**:
-   - Muestra información del usuario autenticado (nombre y correo).
-   - Permite cerrar sesión eliminando los datos almacenados localmente.
+1. **Autenticación**:  
+   Los usuarios pueden registrarse y hacer login proporcionando su nombre, correo y contraseña. Al iniciar sesión, se genera un token JWT que se almacena en `AsyncStorage` para mantener la sesión activa.
 
-### **Backend**
+2. **Gestión de Reservas**:  
+   Los usuarios pueden consultar sus reservas existentes, tanto personales como globales. Además, pueden crear nuevas reservas eligiendo fecha, hora y sala mediante un modal interactivo.
+
+3. **Pantalla de Perfil**:  
+   Muestra la información del usuario autenticado (nombre, correo) y permite cerrar sesión, lo que elimina los datos almacenados localmente.
+
+### Backend
 
 1. **API REST**:
    - **Rutas de Autenticación**:
-     - `/auth/register`: Registrar nuevos usuarios.
-     - `/auth/login`: Autenticar usuarios y generar tokens JWT.
-     - `/auth/logout`: Invalida el token (manejado del lado del cliente).
+     - `/auth/register`: Registrar un nuevo usuario.
+     - `/auth/login`: Autenticar al usuario y generar un token JWT.
+     - `/auth/logout`: Invalida el token JWT en el cliente.
    - **Rutas de Reservas**:
-     - `GET /reservations`: Retorna las reservas del usuario autenticado (ordenadas por fecha y hora).
-     - `GET /reservations/all`: Retorna todas las reservas disponibles, sin filtrar por usuario.
-     - `POST /reservations`: Permite crear una nueva reserva con los campos `date`, `time`, `location`, y `name`.
-     - `PUT /reservations/:id`: Permite editar una reserva específica del usuario autenticado.
-     - `DELETE /reservations/:id`: Permite eliminar una reserva específica del usuario autenticado.
-2. **Middleware**:
-   - Se utiliza para proteger las rutas restringidas validando el token JWT.
-3. **Base de Datos MongoDB**:
-   - Gestiona los usuarios y las reservas utilizando modelos definidos.
+     - `GET /reservations`: Obtener las reservas del usuario autenticado.
+     - `GET /reservations/all`: Obtener todas las reservas disponibles.
+     - `POST /reservations`: Crear una nueva reserva.
+     - `PUT /reservations/:id`: Editar una reserva.
+     - `DELETE /reservations/:id`: Eliminar una reserva.
+2. **Middleware**:  
+   Se emplea un middleware para proteger rutas, validando que el token JWT esté presente y sea válido.
+
+### Base de Datos (MongoDB)
+
+- **Modelos de Datos**:  
+  Se utilizan modelos de MongoDB para gestionar los datos de los usuarios y las reservas.  
+  Ejemplo de modelos:
+  - `User`: Información del usuario (nombre, correo, etc.).
+  - `Reservation`: Detalles de la reserva (fecha, hora, sala, usuario que realiza la reserva).
 
 ---
-
-## Razones para la Elección de las Tecnologías
-
-- **React Native**: La capacidad de crear aplicaciones multiplataforma con un único código base es ideal para optimizar tiempo y recursos.
-- **Expo**: Simplifica la configuración inicial del proyecto y proporciona herramientas útiles para el desarrollo móvil.
-- **Node.js y Express**: Son ligeros, escalables y cuentan con un ecosistema robusto para crear servidores eficientes.
-- **MongoDB**: Ofrece flexibilidad para manejar datos no estructurados, siendo perfecto para reservas dinámicas.
-- **JWT**: Asegura un método seguro y moderno para autenticar usuarios en aplicaciones distribuidas.
-
-Este stack asegura un desarrollo eficiente, una experiencia de usuario moderna y una arquitectura escalable.
