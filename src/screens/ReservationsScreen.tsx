@@ -19,7 +19,7 @@ import ReservationItem from "../components/ReservationItem";
 import styles from "../styles/ReservationsStyles";
 
 interface Reservation {
-	id: string;
+	_id: string;
 	date: string;
 	time: string;
 	location: string;
@@ -136,7 +136,7 @@ export default function ReservationScreen({
 				<ScrollView style={styles.scrollView}>
 					{filteredReservations.map((item) => (
 						<ReservationItem
-							key={item.id}
+							key={item._id}
 							name={item.name}
 							location={item.location}
 							date={item.date}
@@ -160,7 +160,7 @@ export default function ReservationScreen({
 							<Text style={styles.modalTitle}>Reservas del {selectedDate}</Text>
 							<FlatList
 								data={reservations.filter((item) => item.date === selectedDate)}
-								keyExtractor={(item) => item.id}
+								keyExtractor={(item) => item._id}
 								renderItem={({ item }) => (
 									<ReservationItem
 										name={item.name}

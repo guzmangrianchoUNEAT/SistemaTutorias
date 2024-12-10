@@ -85,7 +85,7 @@ export async function getAllReservations() {
 }
 
 // Editar una reserva
-export async function editReservation(id, date, time, location, name) {
+export async function editReservation(id, date, time, location) {
 	try {
 		const token = await AsyncStorage.getItem("token");
 		if (!token) throw new Error("Token no encontrado");
@@ -96,7 +96,7 @@ export async function editReservation(id, date, time, location, name) {
 				"Content-Type": "application/json",
 				Authorization: `Bearer ${token}`,
 			},
-			body: JSON.stringify({ date, time, location, name }),
+			body: JSON.stringify({ date, time, location }),
 		});
 
 		if (response.ok) {

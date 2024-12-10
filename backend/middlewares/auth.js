@@ -16,7 +16,7 @@ function authenticateToken(req, res, next) {
 		}
 
 		req.user = user; // Adjunta los datos del token decodificado a req.user
-		console.log("Usuario autenticado:", user); // Log para verificar el contenido de req.user
+		console.log("Usuario autenticado:", user);
 		next();
 	});
 }

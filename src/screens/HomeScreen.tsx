@@ -13,19 +13,31 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
 	getReservationsByUser,
 	createReservation,
+	editReservation,
+	deleteReservation,
 } from "../services/reservations";
 
 import styles from "../styles/HomeStyles";
 import Header from "../components/Header";
-import ReservationItem from "../components/ReservationItem"; // Importa el nuevo componente
+import ReservationItem from "../components/ReservationItem";
 
 export default function HomeScreen() {
+	interface Reservation {
+		_id: string;
+		date: string;
+		time: string;
+		location: string;
+		name: string;
+	}
+
 	const [reservations, setReservations] = useState<any[]>([]);
 	const [modalVisible, setModalVisible] = useState(false);
 	const [selectedDate, setSelectedDate] = useState("");
 	const [selectedTime, setSelectedTime] = useState("");
 	const [selectedSala, setSelectedSala] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [editingReservation, setEditingReservation] =
+		useState<Reservation | null>(null);
 
 	const salas = ["Sala 1", "Sala 2", "Sala 3", "Sala 4", "Sala 5"];
 
@@ -34,6 +46,7 @@ export default function HomeScreen() {
 			setLoading(true);
 			const result = await getReservationsByUser();
 			if (result.success) {
+				console.log("Reservations:", result.reservations);
 				setReservations(result.reservations);
 			} else {
 				Alert.alert("Error", result.error);
@@ -104,6 +117,76 @@ export default function HomeScreen() {
 		setLoading(false);
 	};
 
+	const handleEditReservation = async () => {
+		if (
+			!selectedDate ||
+			!selectedTime ||
+			!selectedSala ||
+			!editingReservation ||
+			!editingReservation._id
+		) {
+			alert(
+				"Por favor selecciona todos los campos o asegúrate de que la reserva esté correctamente seleccionada."
+			);
+			return;
+		}
+
+		setLoading(true);
+
+		const result = await editReservation(
+			editingReservation._id,
+			selectedDate,
+			selectedTime,
+			selectedSala
+		);
+
+		if (result.success) {
+			const updatedReservations = reservations.map((reservation) =>
+				reservation._id === editingReservation._id
+					? {
+							...reservation,
+							date: selectedDate,
+							time: selectedTime,
+							location: selectedSala,
+						}
+					: reservation
+			);
+			setReservations(updatedReservations);
+			setModalVisible(false);
+			setSelectedDate("");
+			setSelectedTime("");
+			setSelectedSala("");
+			setEditingReservation(null); // Limpiar la reserva en edición
+		} else {
+			Alert.alert("Error", result.error);
+		}
+
+		setLoading(false);
+	};
+
+	const handleDeleteReservation = async (id: string) => {
+		const confirmDelete = window.confirm(
+			"¿Estás seguro de que deseas eliminar esta reserva?"
+		);
+		if (confirmDelete) {
+			setLoading(true);
+
+			const result = await deleteReservation(id);
+			if (result.success) {
+				// Eliminar la reserva del estado
+				const updatedReservations = reservations.filter(
+					(reservation) => reservation._id !== id
+				);
+				setReservations(updatedReservations);
+				Alert.alert("Éxito", "Reserva eliminada con éxito");
+			} else {
+				Alert.alert("Error", result.error);
+			}
+
+			setLoading(false);
+		}
+	};
+
 	const formatDate = (dateString: string) => {
 		const date = new Date(dateString);
 		return date.toLocaleDateString("es-ES", {
@@ -130,13 +213,22 @@ export default function HomeScreen() {
 				) : (
 					<FlatList
 						data={reservations}
-						keyExtractor={(item) => item.id}
+						keyExtractor={(item) => item._id}
 						renderItem={({ item }) => (
 							<ReservationItem
 								name={item.name}
 								location={item.location}
 								date={formatDate(item.date)}
 								time={item.time}
+								editable={true}
+								onEdit={() => {
+									setEditingReservation(item); // Establecer correctamente la reserva para editar
+									setModalVisible(true);
+									setSelectedDate(item.date);
+									setSelectedTime(item.time);
+									setSelectedSala(item.location);
+								}}
+								onDelete={() => handleDeleteReservation(item._id)}
 							/>
 						)}
 						ListEmptyComponent={
@@ -163,7 +255,9 @@ export default function HomeScreen() {
 				>
 					<View style={styles.modalContainer}>
 						<View style={styles.modalContent}>
-							<Text style={styles.modalTitle}>Crear Nueva Reserva</Text>
+							<Text style={styles.modalTitle}>
+								{editingReservation ? "Editar Reserva" : "Crear Nueva Reserva"}
+							</Text>
 
 							<Text style={styles.modalLabel}>Fecha:</Text>
 							<Picker
@@ -193,8 +287,8 @@ export default function HomeScreen() {
 							>
 								<Picker.Item label="Selecciona una hora" value="" />
 								{Array.from({ length: 9 * 4 }, (_, i) => {
-									const hour = Math.floor((9 * 60 + i * 15) / 60); // Calcula la hora
-									const minutes = (9 * 60 + i * 15) % 60; // Calcula los minutos
+									const hour = Math.floor((9 * 60 + i * 15) / 60);
+									const minutes = (9 * 60 + i * 15) % 60;
 									const formattedTime = `${hour}:${minutes === 0 ? "00" : minutes}`;
 									return (
 										<Picker.Item
@@ -229,9 +323,15 @@ export default function HomeScreen() {
 								</TouchableOpacity>
 								<TouchableOpacity
 									style={styles.confirmButton}
-									onPress={handleCreateReservation}
+									onPress={
+										editingReservation
+											? handleEditReservation
+											: handleCreateReservation
+									}
 								>
-									<Text style={styles.buttonText}>Confirmar</Text>
+									<Text style={styles.buttonText}>
+										{editingReservation ? "Actualizar Reserva" : "Confirmar"}
+									</Text>
 								</TouchableOpacity>
 							</View>
 						</View>

@@ -14,7 +14,7 @@ export async function login(email, password) {
 			const { token, user } = await response.json();
 			await AsyncStorage.setItem("token", token); // Guarda el token en AsyncStorage
 			await AsyncStorage.setItem("userName", user.name); // Guarda el nombre del usuario en AsyncStorage
-			await AsyncStorage.setItem("userEmail", user.email); // Guarda el nombre del usuario en AsyncStorage
+			await AsyncStorage.setItem("userEmail", user.email); // Guarda el correo en AsyncStorage
 
 			return { success: true, token, user };
 		} else {
@@ -36,7 +36,7 @@ export async function register(name, email, password) {
 		const response = await fetch(`${API_BASE_URL}/auth/register`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name, email, password }), // Incluye el campo `name`
+			body: JSON.stringify({ name, email, password }),
 		});
 
 		if (response.ok) {
@@ -62,16 +62,5 @@ export async function logout() {
 	} catch (error) {
 		console.error("Error al cerrar sesión:", error);
 		return { success: false, error: "Error al cerrar sesión" };
-	}
-}
-
-// Verificar si el usuario está autenticado
-export async function isAuthenticated() {
-	try {
-		const token = await AsyncStorage.getItem("token");
-		return !!token; // Devuelve true si hay un token válido almacenado
-	} catch (error) {
-		console.error("Error al verificar autenticación:", error);
-		return false;
 	}
 }

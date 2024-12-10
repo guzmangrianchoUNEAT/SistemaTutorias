@@ -1,6 +1,6 @@
 const express = require("express");
 const Reservation = require("../models/reservation");
-const authenticateToken = require("../middlewares/auth"); // Middleware de autenticación
+const authenticateToken = require("../middlewares/auth");
 const router = express.Router();
 
 // Obtener todas las reservas del usuario autenticado
@@ -32,7 +32,7 @@ router.post("/", authenticateToken, async (req, res) => {
 	try {
 		console.log("Datos recibidos en el backend:", req.body);
 		const reservation = new Reservation({
-			date: new Date(date), // Convertir a tipo Date
+			date: new Date(date),
 			time,
 			location,
 			name,
@@ -60,7 +60,7 @@ router.get("/all", async (req, res) => {
 	}
 });
 
-// Ruta para eliminar una reserva (opcional)
+// Ruta para eliminar una reserva
 router.delete("/:id", authenticateToken, async (req, res) => {
 	try {
 		console.log("Eliminando reserva con ID:", req.params.id);
@@ -82,10 +82,9 @@ router.delete("/:id", authenticateToken, async (req, res) => {
 
 // Editar una reserva
 router.put("/:id", authenticateToken, async (req, res) => {
-	const { date, time, location, name } = req.body;
+	const { date, time, location } = req.body;
 
-	// Validar los campos requeridos
-	if (!date || !time || !location || !name) {
+	if (!date || !time || !location) {
 		return res.status(400).json({ error: "Todos los campos son obligatorios" });
 	}
 
@@ -95,7 +94,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
 		// Actualizar la reserva en la base de datos
 		const updatedReservation = await Reservation.findOneAndUpdate(
 			{ _id: req.params.id, userId: req.user.id }, // Asegurar que la reserva pertenece al usuario autenticado
-			{ date: new Date(date), time, location, name },
+			{ date: new Date(date), time, location },
 			{ new: true } // Devuelve la reserva actualizada
 		);
 
