@@ -5,10 +5,8 @@ import {
 	FlatList,
 	ImageBackground,
 	TouchableOpacity,
-	Modal,
 	Alert,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
 	getReservationsByUser,
@@ -16,10 +14,10 @@ import {
 	editReservation,
 	deleteReservation,
 } from "../services/reservations";
-
 import styles from "../styles/HomeStyles";
 import Header from "../components/Header";
 import ReservationItem from "../components/ReservationItem";
+import CustomDatePickerModal from "../components/CustomDatePickerModal"; // Importar el componente
 
 export default function HomeScreen() {
 	interface Reservation {
@@ -46,7 +44,6 @@ export default function HomeScreen() {
 			setLoading(true);
 			const result = await getReservationsByUser();
 			if (result.success) {
-				console.log("Reservations:", result.reservations);
 				setReservations(result.reservations);
 			} else {
 				Alert.alert("Error", result.error);
@@ -55,28 +52,6 @@ export default function HomeScreen() {
 		};
 
 		fetchReservations();
-	}, []);
-
-	const [dateOptions, setDateOptions] = useState<
-		{ label: string; value: string }[]
-	>([]);
-
-	useEffect(() => {
-		// Genera las opciones de fechas al montar el componente
-		const options = Array.from({ length: 30 }, (_, i) => {
-			const date = new Date();
-			date.setDate(date.getDate() + i);
-			return {
-				label: date.toLocaleDateString("es-ES", {
-					weekday: "long",
-					day: "numeric",
-					month: "long",
-					year: "numeric",
-				}),
-				value: date.toISOString(),
-			};
-		});
-		setDateOptions(options);
 	}, []);
 
 	const handleCreateReservation = async () => {
@@ -156,7 +131,7 @@ export default function HomeScreen() {
 			setSelectedDate("");
 			setSelectedTime("");
 			setSelectedSala("");
-			setEditingReservation(null); // Limpiar la reserva en edición
+			setEditingReservation(null);
 		} else {
 			Alert.alert("Error", result.error);
 		}
@@ -173,7 +148,6 @@ export default function HomeScreen() {
 
 			const result = await deleteReservation(id);
 			if (result.success) {
-				// Eliminar la reserva del estado
 				const updatedReservations = reservations.filter(
 					(reservation) => reservation._id !== id
 				);
@@ -222,7 +196,7 @@ export default function HomeScreen() {
 								time={item.time}
 								editable={true}
 								onEdit={() => {
-									setEditingReservation(item); // Establecer correctamente la reserva para editar
+									setEditingReservation(item);
 									setModalVisible(true);
 									setSelectedDate(item.date);
 									setSelectedTime(item.time);
@@ -247,96 +221,19 @@ export default function HomeScreen() {
 					<Text style={styles.createButtonText}>Crear Reserva</Text>
 				</TouchableOpacity>
 
-				<Modal
+				{/* Reemplazar el Modal por CustomDatePickerModal */}
+				<CustomDatePickerModal
 					visible={modalVisible}
-					animationType="slide"
-					transparent={true}
-					onRequestClose={() => setModalVisible(false)}
-				>
-					<View style={styles.modalContainer}>
-						<View style={styles.modalContent}>
-							<Text style={styles.modalTitle}>
-								{editingReservation ? "Editar Reserva" : "Crear Nueva Reserva"}
-							</Text>
-
-							<Text style={styles.modalLabel}>Fecha:</Text>
-							<Picker
-								selectedValue={selectedDate}
-								onValueChange={(itemValue: string) =>
-									setSelectedDate(itemValue)
-								}
-								style={styles.picker}
-								itemStyle={styles.pickerItem}
-							>
-								<Picker.Item label="Selecciona una fecha" value="" />
-								{dateOptions.map((option, index) => (
-									<Picker.Item
-										key={index}
-										label={option.label}
-										value={option.value}
-									/>
-								))}
-							</Picker>
-							<Text style={styles.modalLabel}>Hora:</Text>
-							<Picker
-								selectedValue={selectedTime}
-								onValueChange={(itemValue: string) =>
-									setSelectedTime(itemValue)
-								}
-								style={styles.picker}
-							>
-								<Picker.Item label="Selecciona una hora" value="" />
-								{Array.from({ length: 9 * 4 }, (_, i) => {
-									const hour = Math.floor((9 * 60 + i * 15) / 60);
-									const minutes = (9 * 60 + i * 15) % 60;
-									const formattedTime = `${hour}:${minutes === 0 ? "00" : minutes}`;
-									return (
-										<Picker.Item
-											key={i}
-											label={formattedTime}
-											value={formattedTime}
-										/>
-									);
-								})}
-							</Picker>
-
-							<Text style={styles.modalLabel}>Sala:</Text>
-							<Picker
-								selectedValue={selectedSala}
-								onValueChange={(itemValue: string) =>
-									setSelectedSala(itemValue)
-								}
-								style={styles.picker}
-							>
-								<Picker.Item label="Selecciona una sala" value="" />
-								{salas.map((sala, index) => (
-									<Picker.Item key={index} label={sala} value={sala} />
-								))}
-							</Picker>
-
-							<View style={styles.modalButtons}>
-								<TouchableOpacity
-									style={styles.cancelButton}
-									onPress={() => setModalVisible(false)}
-								>
-									<Text style={styles.buttonText}>Cancelar</Text>
-								</TouchableOpacity>
-								<TouchableOpacity
-									style={styles.confirmButton}
-									onPress={
-										editingReservation
-											? handleEditReservation
-											: handleCreateReservation
-									}
-								>
-									<Text style={styles.buttonText}>
-										{editingReservation ? "Actualizar Reserva" : "Confirmar"}
-									</Text>
-								</TouchableOpacity>
-							</View>
-						</View>
-					</View>
-				</Modal>
+					onConfirm={({ date, room }) => {
+						setSelectedDate(date.toISOString());
+						setSelectedTime(`${date.getHours()}:${date.getMinutes()}`);
+						setSelectedSala(room);
+						editingReservation
+							? handleEditReservation()
+							: handleCreateReservation();
+					}}
+					onCancel={() => setModalVisible(false)}
+				/>
 			</View>
 		</ImageBackground>
 	);
