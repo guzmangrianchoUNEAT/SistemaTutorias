@@ -12,8 +12,17 @@
 
 ### Backend
 
-- **Node.js con Express**: Para construir el servidor que gestiona la lógica de la API y la comunicación con la base de datos.
-- **JWT (JSON Web Tokens)**: Para la autenticación segura entre el cliente y el servidor.
+El backend de la aplicación está construido con las siguientes tecnologías:
+
+- **Node.js con Express**: Para crear el servidor y manejar las rutas de la API.
+- **Mongoose**: Librería para interactuar con MongoDB de manera fácil y estructurada.
+- **JWT (JSON Web Tokens)**: Para la autenticación de usuarios de manera segura.
+- **bcryptjs**: Para encriptar y comparar contraseñas de forma segura.
+- **CORS**: Para permitir que la API se comunique con el frontend, incluso si están en diferentes dominios.
+- **dotenv**: Para gestionar variables de configuración como la URI de MongoDB y la clave secreta de JWT.
+- **express.json()**: Para procesar datos en formato JSON en las solicitudes.
+
+Estas tecnologías permiten manejar de manera segura y eficiente el registro, inicio de sesión y gestión de reservas de los usuarios.
 
 ### Base de Datos
 
@@ -87,3 +96,35 @@ backend/
   - `Reservation`: Detalles de la reserva (fecha, hora, sala, usuario que realiza la reserva).
 
 ---
+
+## Casos de Uso
+
+1. **Registrarse**:  
+   Un usuario nuevo puede crear una cuenta proporcionando su nombre, correo y contraseña.
+
+2. **Iniciar sesión**:  
+   Los usuarios registrados pueden iniciar sesión con su correo y contraseña.
+
+3. **Consultar sus reservas**:  
+   Los usuarios pueden ver todas las reservas que han realizado, con detalles como la fecha, la hora y la sala.
+
+4. **Crear nuevas reservas**:  
+   Los usuarios pueden crear una nueva reserva seleccionando una sala, fecha y hora disponibles.
+
+5. **Editar una reserva**:  
+   Si lo desean, los usuarios pueden modificar una reserva existente (por ejemplo, cambiar la fecha o la hora).
+
+6. **Eliminar una reserva**:  
+   Los usuarios pueden cancelar una reserva que ya no necesiten.
+
+7. **Ver su perfil**:  
+   Los usuarios pueden acceder a su perfil, donde se muestra su información básica (nombre y correo) y pueden cerrar sesión.
+
+8. **Cerrar sesión**:  
+   Los usuarios pueden cerrar sesión en cualquier momento, lo que eliminará su token de sesión y los desconectará de la aplicación.
+
+---
+
+## Funcionamiento
+
+![Funcionamiento del sistema](assets/funcionamiento.svg)
